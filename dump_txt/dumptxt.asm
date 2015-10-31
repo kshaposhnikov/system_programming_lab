@@ -35,12 +35,6 @@ OutChar macro char ; макрос вывода символа
 push ax
 mov ah,06h
 mov dx,char
-
-;---------fix error with ASCII on DosBOX-------
-sub dx, 30h
-;----------------------------------------------
-
-add dx,30h
 int 21h
 pop ax
 endm
