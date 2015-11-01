@@ -1,7 +1,5 @@
 ;Программа выводит график синуса
 
-;include util.inc ;содержит макросы вывода точки, осей и символа
-
 ;макрос вывода пиксела на экран с коорд. x,y и цветом color
 PrintPixel macro x,y,color 
 pusha
@@ -18,10 +16,10 @@ endm
 axisX macro
 local iter
 pusha
-;OutCharG 4eh,0fh,03h,78h ;X
 mov cx,640
 iter:
- PrintPixel cx,240,3h
+ mov dx, cx 
+ PrintPixel dx,240,3h
 loop iter
 PrintPixel 637,241,3h ;рисование стрелки стрелки на оси X
 PrintPixel 637,239,3h
@@ -46,41 +44,35 @@ endm
 ;-----------------------------------------------------------------
 ;макрос вывода вертикальной линии в середине экрана
 axisY macro
-local iter
+local iter, iter1, len, start
 pusha
 mov cx,480
 iter:
- ;mov dx,cx
- lea dx, iter
- sub dx. 480
+ mov dx, cx
  PrintPixel 320,dx,3h
- ;dec cx
- ;cmp cx,19
-;jge iter
 loop iter
-PrintPixel 319,22,3h ;рисование стрелки на оси Y
-PrintPixel 321,22,3h
-PrintPixel 319,23,3h
-PrintPixel 321,23,3h
-PrintPixel 319,24,3h
-PrintPixel 321,24,3h
-PrintPixel 318,25,3h
-PrintPixel 322,25,3h
-PrintPixel 318,26,3h
-PrintPixel 322,26,3h
-PrintPixel 318,27,3h
-PrintPixel 322,27,3h
-PrintPixel 319,26,3h
-PrintPixel 321,26,3h
-PrintPixel 319,27,3h
-PrintPixel 321,27,3h
-PrintPixel 319,25,3h
-PrintPixel 321,25,3h
-;OutCharG 29h,01h,03h,79h ;Y
+
+PrintPixel 319,3,3h ;рисование стрелки на оси Y
+PrintPixel 321,3,3h
+PrintPixel 319,4,3h
+PrintPixel 321,4,3h
+PrintPixel 319,5,3h
+PrintPixel 321,5,3h
+PrintPixel 318,6,3h
+PrintPixel 322,6,3h
+PrintPixel 318,7,3h
+PrintPixel 322,7,3h
+PrintPixel 318,8,3h
+PrintPixel 322,8,3h
+PrintPixel 319,7,3h
+PrintPixel 321,7,3h
+PrintPixel 319,8,3h
+PrintPixel 321,8,3h
+PrintPixel 319,6,3h
+PrintPixel 321,6,3h
 popa
 endm
 ;---------------------------------------------------------
-
 .model small
 .stack 100h
 .data
@@ -117,23 +109,23 @@ mov cx, 12ch        ;7530h ;клаем в СХ количество итераций цикла
 finit               ;инициализируем математический сопроцессор
 
 iter:
- fld x              ;st(0)=x
- fld scaleX         ;st(0)=scaleX st(1)=x
- fmul               ;st(0)=scaleX*x
- frndint            ;st(0)=round(scaleX*x)
- fld xdiv2          ;st(0)=xdiv2 st(1)=round(scaleX*x)
- fadd               ;st(0)=xdiv2+round(scaleX*x) - координата X найдена!!!
+ fld x              ; x
+ fld scaleX         ; scaleX
+ fmul               ; scaleX*x
+ frndint            ; round(scaleX*x)
+ fld xdiv2          ; xdiv2
+ fadd               ; xdiv2+round(scaleX*x)
  fistp word ptr resultX ;заносим X в переменную дл€ вывода на экран
 
- fld x              ;st(0)=x
- fsin               ;st(0)=sin(x)
- fdiv x             ;st(0)=sin(x) / cyscleX
- fld scaleY         ;st(0)=scaleY st(1)=sin(x)
- fmul               ;st(0)=scaleY*sin(x)
- frndint            ;st(0)=round(scaleY*sin(x))
- fstp tmp           ;tmp=round(scaleY*sin(x))
- fld ydiv2          ;st(0)=ydiv2
- fsub tmp           ;st(0)=ydiv2-round(scaleY*sin(x)) - координата Y найдена!!!
+ fld x              ; x
+ fsin               ; sin(x)
+ fdiv x             ; sin(x) / x
+ fld scaleY         ; scaleY
+ fmul               ; scaleY*sin(x)
+ frndint            ; round(scaleY*sin(x))
+ fstp tmp           ; tmp=round(scaleY*sin(x))
+ fld ydiv2          ; ydiv2
+ fsub tmp           ; ydiv2-round(scaleY*sin(x))
  fistp word ptr resultY ;заносим Y в переменную дл€ вывода на экран
 
  PrintPixel resultX, resultY, 0ah ;выводим точку зеленым цветом
