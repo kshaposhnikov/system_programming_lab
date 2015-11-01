@@ -43,8 +43,7 @@ endm
 .model small
 .stack 100h
 .data
-    row dd 01h
-    column dd 01h
+    dischargesInLine dd 01h
 .code
 start:
 .486
@@ -69,22 +68,14 @@ mov cx,offset exit      ; записываем в cx алрес начала программы
 sub cx,offset start     ; вычитаем из cx адрес конца программы
 
 CXne0:
-;lea bx, row
-;mov ax, 0a0h
-;mul bx
-;mov si, ax
-lea bx, column
-mov ax, 2h
-mul bx
-mov si, ax
-;add ax, si
-;mov si, ax
-
-
-mov al,cs:[di]
-;mov si, 160 * 2 + 0 * 2
-CalculateCodeOfChar al
-add column, 01h
+mov al,cs:[di]				; записываем в al вдрес сдвига относительно cs
+add dischargesInLine, 01h	; увеличиваем число байт в строке
+CalculateCodeOfChar al		; dвысиляем и выводим символ
+cmp dischargesInLine, 8h	; сравниваем число байт и 8
+jle m1						; если меньше либо равно переходим по m1 и проболжаем цикл
+sub dischargesInLine, 8h  	; в противном случае обнуляем переменную
+add si, 112
+m1:
 loop Cxne0
 
 exit:
