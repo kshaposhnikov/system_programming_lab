@@ -1,75 +1,54 @@
 ;Џрограмма выводит график синуса
 
-;макрос вывода пиксела на экран с коорд. x,y и цветом color
+;макрос вывода пикселЯ на экран
 PrintPixel macro x,y,color 
 pusha
-mov ah,0ch
-mov al,color
-mov bh,0h
-mov cx,x
-mov dx,y
+mov ah, 0ch
+mov bh, 0h
+
+mov cx, x
+mov dx, y
+mov al, color
+
 int 10h
 popa
 endm
 ;---------------------------------------------------
-;макрос вывода горизонтальной линии в середине экрана 
+;макрос вывода оси X 
 axisX macro
 local iter
 pusha
-mov cx,640
+mov cx, 640
 iter:
  mov dx, cx 
- PrintPixel dx,240,3h
+ PrintPixel dx, 240, 3h
 loop iter
-PrintPixel 637,241,3h ;рисование стрелки стрелки на оси X
-PrintPixel 637,239,3h
-PrintPixel 636,241,3h
-PrintPixel 636,239,3h
-PrintPixel 635,241,3h
-PrintPixel 635,239,3h
-PrintPixel 634,241,3h
-PrintPixel 634,239,3h
-PrintPixel 633,241,3h
-PrintPixel 633,239,3h
-PrintPixel 632,242,3h
-PrintPixel 632,238,3h
-PrintPixel 633,242,3h
-PrintPixel 633,238,3h
-PrintPixel 632,241,3h
-PrintPixel 632,239,3h
-PrintPixel 634,242,3h
-PrintPixel 634,238,3h
+
+PrintPixel 637, 241, 3h ;рисование стрелки стрелки на оси X
+PrintPixel 637, 239, 3h
+PrintPixel 636, 238, 3h
+PrintPixel 636, 242, 3h
+PrintPixel 635, 237, 3h
+PrintPixel 635, 243, 3h
 popa
 endm
 ;-----------------------------------------------------------------
-;макрос вывода вертикальной линии в середине экрана
+;макрос вывода оси Y
 axisY macro
-local iter, iter1, len, start
+local iter
 pusha
-mov cx,480
+mov cx, 480
 iter:
  mov dx, cx
- PrintPixel 320,dx,3h
+ PrintPixel 320, dx, 3h
 loop iter
 
-PrintPixel 319,3,3h ;рисование стрелки на оси Y
-PrintPixel 321,3,3h
-PrintPixel 319,4,3h
-PrintPixel 321,4,3h
-PrintPixel 319,5,3h
-PrintPixel 321,5,3h
-PrintPixel 318,6,3h
-PrintPixel 322,6,3h
-PrintPixel 318,7,3h
-PrintPixel 322,7,3h
-PrintPixel 318,8,3h
-PrintPixel 322,8,3h
-PrintPixel 319,7,3h
-PrintPixel 321,7,3h
-PrintPixel 319,8,3h
-PrintPixel 321,8,3h
-PrintPixel 319,6,3h
-PrintPixel 321,6,3h
+PrintPixel 319, 3, 3h ;рисование стрелки на оси Y
+PrintPixel 321, 3, 3h
+PrintPixel 318, 4, 3h
+PrintPixel 322, 4, 3h
+PrintPixel 317, 5, 3h
+PrintPixel 323, 5, 3h
 popa
 endm
 ;---------------------------------------------------------
@@ -77,11 +56,11 @@ endm
 .stack 100h
 .data
 
-x       dd -15.0    ;счетчик 
-step    dd 0.1      ;шаг
+x       dd -15.0    ; переменнаЯ X 
+step    dd 0.1      ; шаг
 
-xdiv2   dd 320.0    ;середина по X и Y
-ydiv2   dd 240.0
+middleX   dd 320.0    ; середина по оси X
+middleY   dd 240.0    ; середина по оси Y
 
 tmp     dd 0 
 
@@ -94,57 +73,56 @@ scaleY  dd 160.0
 .code
 .486
 start:
-mov ax, @DATA       ;кладем адрес сегмента данных в ax
+mov ax, @DATA       ; кладем адрес сегмента данных в ax
 mov ds, ax          ; перемещаем ax в ds
-;xor ax, ax
 ;------------------------------------------------------------------
-mov ah, 0h          ;инициализируем графический режим
+mov ah, 0h          ; инициализируем графический режим
 mov al, 12h
 int 10h
 ;-----------------------------------------------------------------
-axisX               ;вывод осей координат
+axisX               ;выводим ось X
 axisY
 
-mov cx, 12ch        ;7530h ;клаем в ‘• количество итераций цикла
-finit               ;инициализируем математический сопроцессор
+mov cx, 12ch        ; 12ch клаем в ‘• количество итераций цикла
+finit               ; подключаем математический сопроцессор
 
 iter:
- fld x              ; x
- fld scaleX         ; scaleX
- fmul               ; scaleX*x
+ fld x              ; кладем в стек x
+ fld scaleX         ; кладем в стек scaleX
+ fmul               ; scaleX * x
  frndint            ; round(scaleX*x)
- fld xdiv2          ; xdiv2
- fadd               ; xdiv2+round(scaleX*x)
+ fld middleX        ; кладем в стек middleX
+ fadd               ; middleX + round(scaleX * x)
  fistp word ptr resultX ;заносим X в переменную для вывода на экран
 
- fld x              ; x
+ fld x              ; кладем в стек x
  fsin               ; sin(x)
  fdiv x             ; sin(x) / x
- fld scaleY         ; scaleY
- fmul               ; scaleY*sin(x)
- frndint            ; round(scaleY*sin(x))
- fstp tmp           ; tmp=round(scaleY*sin(x))
- fld ydiv2          ; ydiv2
- fsub tmp           ; ydiv2-round(scaleY*sin(x))
+ fld scaleY         ; кладем в стек scaleY
+ fmul               ; scaleY * (sin(x) / x)
+ frndint            ; round(scaleY * (sin(x) / x))
+ fstp tmp           ; tmp = round(scaleY * (sin(x) / x))
+ fld middleY        ; кладем в стек middleY
+ fsub tmp           ; middleY - round(scaleY * (sin(x) / x))
  fistp word ptr resultY ;заносим Y в переменную для вывода на экран
 
  PrintPixel resultX, resultY, 0ah ;выводим точку зеленым цветом
 
- fld step           ;вычисляем новое значение x
+ fld step           ; вычисляем новое значение длЯ x
  fld x
  fadd
  fstp x
-loop iter             ;цикл по cx
+loop iter             ; новаЯ итерациЯ
 ;--------------------------------------------------------------------
-mov ah, 1h          ;ожидание нажатия клавиши 
+mov ah, 1h          ; press any key 
 int 21h
 ;--------------------------------------------------------------------
-mov ah, 0h          ;перевод обратно в текстовый режим
+mov ah, 0h          ; перевод в текстовый режим
 mov al, 03h
 int 10h
 ;--------------------------------------------------------------------
 exit:
-mov ax, 4C00h       ;стандартный выход
+mov ax, 4C00h       ; выход
 int 21h
 
 END start
