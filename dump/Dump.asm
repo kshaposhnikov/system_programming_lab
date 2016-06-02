@@ -61,7 +61,7 @@ mov ax, 0501h
 int 10h
 
 ;Ќачальные значени€
-mov si,0
+mov si,320
 mov di,0
 
 mov cx,offset exit      ; записываем в cx алрес начала программы
@@ -74,7 +74,7 @@ CalculateCodeOfChar al		; dвысил€ем и выводим символ
 cmp dischargesInLine, 8h	; сравниваем число байт и 8
 jle m1						; если меньше либо равно переходим по m1 и проболжаем цикл
 sub dischargesInLine, 8h  	; в противном случае обнул€ем переменную
-add si, 112
+add si, 112                 ; перевод строки
 m1:
 loop Cxne0
 
